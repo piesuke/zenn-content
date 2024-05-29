@@ -27,7 +27,7 @@ published: false # 公開設定（falseにすると下書き）
 
 ## アーキテクチャ全体像
 
-![alt text](image.png)
+![](/images/studio-architecture.png)
 
 ウズスタジオは、ウズ上で遊べるシナリオを制作するためのツールです。シナリオデータは最終的に Google Cloud Storage に JSON 形式で保存され、ウズがそのデータを取得してユーザーに表示しています。
 
