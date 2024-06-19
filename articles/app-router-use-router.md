@@ -215,7 +215,9 @@ useEffect(() => {
 }, []);
 ```
 
-のように router.events というイベントを使ってページ遷移をブロックする処理を行うことができたり、ブラウザバックボタンの挙動を制御することができました。
+のように router.events というイベントを使ってページ遷移をブロックする処理を行うことができました。
+
+また、ブラウザバックボタンの挙動を制御するには、beforePopState を使って以下のように実装することができました。
 
 ```tsx
 import { useRouter } from "next/router";
@@ -225,6 +227,7 @@ const router = useRouter();
 router.beforePopState(({ url, as, options }) => {
   if (!window.confirm("本当によろしいですか?")) {
     return false;
+    // 省略
   }
 
   return true;
@@ -235,7 +238,7 @@ router.beforePopState(({ url, as, options }) => {
 
 https://github.com/vercel/next.js/discussions/41934
 
-こちらの discussion にも同様の問題が挙がっており、今後の対応が注目されています。
+こちらの discussion にも同様の問題が挙がっており、今後の対応が注目されています。2024/06/19 時点では、Solution とし `window.addEventListener('beforeunload', showModal);`のイベントを使って `event.preventDefault();` を呼び出してページ遷移をブロックする方法が提案されていますが、ブラウザバックが対応してなかったり、`beforeunload`イベントは ios の Safari に対応してなかったと、まだまだ問題が残っているようです。
 ですので、フォーム周りの挙動を制御することが重要なプロダクトの場合、AppRouter への移行は慎重に行う必要があります。
 
 ## 3. グローバルな router オブジェクトが使えなくなった
