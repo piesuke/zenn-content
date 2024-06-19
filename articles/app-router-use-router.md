@@ -1,6 +1,6 @@
 ---
-title: "useRouterの仕様変更から見るAppRouter" # 記事のタイトル
-emoji: "😸" # アイキャッチとして使われる絵文字（1文字だけ）
+title: "AppRouter移行におけるuseRouterのハマりポイント" # 記事のタイトル
+emoji: "💥" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
 topics: ["flutter", "firebase"] # タグ。["markdown", "rust", "aws"]のように指定する
 published: false # 公開設定（falseにすると下書き）
@@ -98,9 +98,9 @@ export default function Page() {
 全く同名のフックの役割が縮小されていることによる認知負荷は地味に大きかったです。`next/router`は AppRouter では使えませんが Deprecated ではないため特に警告は出ず、実行してから `next/navigation`に変更するべきだったことを知る時がありました。
 また、今まで取得できていた pathname や query などの情報を取得するためには新しいフックを使う必要があることになれるまで時間がかかりました。参考の為に主な変更点を以下にまとめます。
 
-`pathname`
+### pathname
 
-PageRouter
+`PageRouterの場合`
 
 ```tsx
 import { useRouter } from "next/router";
@@ -109,15 +109,16 @@ const router = useRouter();
 const pathname = router.pathname;
 ```
 
-AppRouter
+`AppRouterの場合`
 
 ```tsx
 import { usePathname } from "next/navigation";
 const pathname = usePathname();
 ```
 
-`query Parameters`
-PageRouter
+### query Parameters
+
+`PageRouterの場合`
 
 ```tsx
 import { useRouter } from "next/router";
@@ -127,7 +128,7 @@ const query = router.query;
 const id = query.id;
 ```
 
-AppRouter
+`AppRouterの場合`
 
 ```tsx
 import { useSearchParams } from "next/navigation";
@@ -135,8 +136,9 @@ const query = useSearchParams();
 const id = query.get("id");
 ```
 
-`Dynamic Parameters`
-PageRouter
+### Dynamic Parameters
+
+`PageRouterの場合`
 
 ```tsx
 import { useRouter } from "next/router";
@@ -145,7 +147,7 @@ const router = useRouter();
 const { id } = router.query;
 ```
 
-AppRouter
+`AppRouterの場合`
 
 ```tsx
 import { useParams } from "next/navigation";
@@ -189,7 +191,7 @@ useEffect(() => {
 }, [pathname, query]);
 ```
 
-この程度なら問題ないですが、ページ遷移時に何か処理を行いたい場合には、少し面倒になります。例えば、フォームの入力内容が未保存の場合にページ遷移をブロックする処理を行いたい場合など、ページ遷移時に処理を行いたい場合には、少し面倒になります。
+これはページの path が変わった時に都度発火するくらいの単純な処理なのでまだ大丈夫でした。しかし、ページ遷移時に何か処理を行いたい場合には、少し面倒になります。例えば、フォームの入力内容が未保存の場合にページ遷移をブロックする処理を行いたい場合などです。
 元々 PageRouter では、next/router に依存するページ遷移の時は
 
 ```tsx
@@ -248,9 +250,7 @@ Router.router.push("/dashboard");
 
 のように router オブジェクトを取得してページ遷移を行ったり、query や pathname を取得することができました。
 
-しかし、AppRouter では router オブジェクトがグローバルなオブジェクトではなくなったため、このような使い方ができなくなりました。この場合、
-
-既に PageRouter でこのような実装を行っている場合は、AppRouter への移行の意思決定に注意が必要です。
+しかし、AppRouter では router オブジェクトがグローバルなオブジェクトではなくなったため、このような使い方ができなくなりました。この場合、window.location.href や window.history.pushState などのブラウザの API を使ってページ遷移を行う必要があります。
 
 ## まとめ
 
