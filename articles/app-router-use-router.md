@@ -8,7 +8,7 @@ published: false # 公開設定（falseにすると下書き）
 
 こんにちは。[株式会社 Sally](https://sally-inc.jp/) エンジニアの [@piesuke](https://x.com/piesuke27)です。
 私たちは、マーダーミステリーを遊べることが出来るアプリ「ウズ」と、マーダーミステリーを制作してウズ上で遊べることが出来るアプリ「ウズスタジオ」を開発しています。
-私の好きなマーダーミステリーは「[あなたの原罪](https://mdms.jp/scenarios/2577)」です。
+最近良かったマーダーミステリーは「[あなたの原罪](https://mdms.jp/scenarios/2577)」です。
 
 私たちは運営する Web サイトにおいて Next.js を採用しています。今までは PageRouter を使用していましたが、様々な事情により最近 AppRouter に移行することになりました。その際、useRouter の仕様変更が地味に辛く、破壊的変更を行った Next.js への怒りがふつふつと湧いてきました。
 なので、今回はその仕様変更と、なぜそのような仕様変更を行う必要があったのかについて書いていきます。
@@ -93,12 +93,12 @@ export default function Page() {
 
 軽く変更点を紹介したところで、実際に変更を行う際にハマったポイントを紹介します。
 
-### 1. 認知負荷
+### 1. 書き方がかなり変わった
 
-全く同名のフックの役割が縮小されていることによる認知負荷は地味に大きかったです。`next/router`は AppRouter では使えませんが Deprecated ではないため特に警告は出ず、実行してから `next/navigation`に変更するべきだったことを知る時がありました。
+全く同名のフックの役割が縮小されていることにより `query`や`pathname`を取得するためには新しいフックを使う必要があり、慣れるまで地味に時間がかかりました。また、`next/router`は AppRouter では使えませんが Deprecated ではないため特に警告は出ず、実行してから `next/navigation`に変更するべきだったことを知る時がありました。
 また、今まで取得できていた pathname や query などの情報を取得するためには新しいフックを使う必要があることになれるまで時間がかかりました。参考の為に主な変更点を以下にまとめます。
 
-### pathname
+#### pathname
 
 `PageRouterの場合`
 
@@ -113,10 +113,11 @@ const pathname = router.pathname;
 
 ```tsx
 import { usePathname } from "next/navigation";
+
 const pathname = usePathname();
 ```
 
-### query Parameters
+#### query Parameters
 
 `PageRouterの場合`
 
@@ -132,11 +133,12 @@ const id = query.id;
 
 ```tsx
 import { useSearchParams } from "next/navigation";
+
 const query = useSearchParams();
 const id = query.get("id");
 ```
 
-### Dynamic Parameters
+#### Dynamic Parameters
 
 `PageRouterの場合`
 
@@ -151,6 +153,7 @@ const { id } = router.query;
 
 ```tsx
 import { useParams } from "next/navigation";
+
 const params = useParams<{ id: string }>();
 const id = params.id;
 ```
@@ -241,7 +244,7 @@ https://github.com/vercel/next.js/discussions/41934
 こちらの discussion にも同様の問題が挙がっており、今後の対応が注目されています。2024/06/19 時点では、Solution とし `window.addEventListener('beforeunload', showModal);`のイベントを使って `event.preventDefault();` を呼び出してページ遷移をブロックする方法が提案されていますが、ブラウザバックが対応してなかったり、`beforeunload`イベントは ios の Safari に対応してなかったと、まだまだ問題が残っているようです。
 ですので、フォーム周りの挙動を制御することが重要なプロダクトの場合、AppRouter への移行は慎重に行う必要があります。
 
-## 3. グローバルな router オブジェクトが使えなくなった
+### 3. グローバルな router オブジェクトが使えなくなった
 
 PageRouter の場合、useRouter で取得した router オブジェクトはグローバルなオブジェクトでした。そのため、どこからでも router オブジェクトを取得してページ遷移を行うことができました。例えば、React のライフサイクルの外でも
 
@@ -254,6 +257,21 @@ Router.router.push("/dashboard");
 のように router オブジェクトを取得してページ遷移を行ったり、query や pathname を取得することができました。
 
 しかし、AppRouter では router オブジェクトがグローバルなオブジェクトではなくなったため、このような使い方ができなくなりました。この場合、window.location.href や window.history.pushState などのブラウザの API を使ってページ遷移を行う必要があります。
+
+## なぜこのような変更が行われたのか
+
+ではなぜこのような破壊的変更が行われたのでしょうか。公式ドキュメントを調べたところ明確にその理由を書いていた箇所はなかったのですが、
+
+https://github.com/vercel/next.js/discussions/41934
+
+こちらの discussions でメンテナーの方が、
+
+> All navigations in the Next.js App Router are built on React Transitions
+
+と発言しており、(個人の推測ですが)AppRouter は React Transitions 上に構築されている為、next/router で提供されていた events の検知などの処理が難しいのではないかと考えられます。この辺りは公式見解を待ちたいですね。
+
+ですが、React Transitions 上に構築することで Suspense
+などの機能がサポートできる状態になったとも思うので、あながち悪い面ばかりでもありません(それでもここまで破壊的変更があると今後が不安ですが...)。Next.js 側も問題は認識しているはずなので、今後のアップデートに期待しましょう。
 
 ## まとめ
 
