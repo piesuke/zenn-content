@@ -9,13 +9,13 @@ publication_name: "uzu_tech"
 
 こんにちは。[株式会社 Sally](https://sally-inc.jp/) エンジニアの [@piesuke](https://x.com/piesuke27)です。
 私たちは、マーダーミステリーを楽しむためのアプリ「ウズ」と、マーダーミステリーを制作してウズ上で遊べることが出来るアプリ「ウズスタジオ」、マーダーミステリーを検索できるサイト「マダミス.jp」を開発・運営しています。
-最近良かったマーダーミステリーは「[死神はトリックをかたらない](https://mdms.jp/scenarios/2678)」です。
+私が最近やって良かったマーダーミステリーは「[死神はトリックをかたらない](https://mdms.jp/scenarios/2678)」です。
 
 今回は、弊社で採用しているテキストエディタ「Quill」の紹介と、ペースト時の書式設定カスタマイズ方法を解説します。
 
 ## 背景
 
-弊社ではマーダーミステリーのアプリを運営していますが、一般的にゲームのようなグラフィカルな画面ではなく、文章が主役のアプリであり、装飾の重要性が高いです。また、作家の方々が文章を書く際に、文章の装飾を簡単に行えるようにすることが重要でした。
+弊社ではマーダーミステリーのアプリを運営していますが、一般的にゲームのようなグラフィカルな画面ではなく、文章が主役のアプリであり、装飾の重要性が高いです。また、作家の方々が文章を書く際に、装飾を簡単に行えるようにすることが重要でした。
 
 元々文章の装飾・表示には マークダウン を使用していましたが、以下の点で マークダウン では不十分であると感じていました。
 
@@ -112,6 +112,9 @@ class PlainClipboard extends Clipboard {
   onPaste(range: Range, { text, html }: { text?: string; html?: string }) {
     const quillObj: Quill = this.quill as Quill;
 
+    let delta: DeltaStatic = new Delta()
+      .retain(range.index)
+      .delete(range.length);
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, "text/html");
     const elements = doc.body.querySelectorAll("*");
