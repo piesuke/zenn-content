@@ -21,7 +21,7 @@ publication_name: "uzu_tech"
 
 - 装飾が限られる点
 - 作家の方に マークダウンの記法を覚えてもらう必要がある点
-- マークダウンをアプリ側で表示するライブラリが不安定で、メンテコストが高かった点
+- 文字色等の装飾を拡張する際に Flutter のマークダウンライブラリをフォークする必要があり、自前でメンテナンスし続けるのが辛かった点
 
 そこで、WYSIWYG エディタである Quill を採用することにしました。
 
@@ -31,10 +31,10 @@ WYSIWYG エディタを導入するにあたっての要件は以下がありま
 
 - 作家の方が文章の編集や装飾を簡単に行えること
 - 装飾が豊富で、拡張性が高いこと
-- アプリと Web どちらでも動作すること
+- アプリネイティブと Web どちらでも動作すること
   - ただし編集は Web で行い、アプリでは表示のみ行う
 
-このうち三つ目の「アプリと Web どちらでも動作すること」が重要で、アプリでは Flutter 、Web では Next.js を使用しているため、両方でライブラリが使えることが必要でした。Web のみで使えるライブラリは多いですが、選定を行なった去年時点では Flutter、Next.js 両方で安定して使えるライブラリが存在するのは Quill がほとんど唯一と言っていい状況だったので、Quill を採用することにしました。
+このうち三つ目の「アプリネイティブと Web どちらでも動作すること」が重要で、アプリでは Flutter 、Web では Next.js を使用しているため、両方でライブラリが使えることが必要でした。Web のみで使えるライブラリは多いですが、選定を行なった去年時点では Flutter、Next.js 両方で安定して使えるライブラリが存在するのは Quill がほとんど唯一と言っていい状況だったので、Quill を採用することにしました。
 
 一つ目と二つ目に関しては、動作面では違和感なく使えたこと、カスタマイズ性が高いようなデータ構造を持っていたことからも申し分ないと感じました。
 
@@ -103,7 +103,30 @@ Quill のペースト処理は、`clipboard` モジュールを使って行わ�
 
 https://github.com/slab/quill/blob/main/packages/quill/src/modules/clipboard.ts
 
-このモジュールを拡張していきます。
+このモジュールの
+
+```ts
+onPaste(range: Range, { text, html }: { text?: string; html?: string }) {
+    const formats = this.quill.getFormat(range.index);
+    const pastedDelta = this.convert({ text, html }, formats);
+    debug.log('onPaste', pastedDelta, { text, html });
+    const delta = new Delta()
+      .retain(range.index)
+      .delete(range.length)
+      .concat(pastedDelta);
+    this.quill.updateContents(delta, Quill.sources.USER);
+    // range.length contributes to delta.length()
+    this.quill.setSelection(
+      delta.length() - range.length,
+      Quill.sources.SILENT,
+    );
+    this.quill.scrollSelectionIntoView();
+  }
+```
+
+の部分がペースト時に発火しています。元々は、`text` と `html` をそのまま Delta に変換しているだけですが、これをカスタマイズすることでペースト時の処理を変更することができます。
+
+こちらがコード全文です。
 
 ```tsx
 const Clipboard = Quill.import("modules/clipboard");
@@ -150,6 +173,51 @@ class PlainClipboard extends Clipboard {
 Quill.register("modules/clipboard", PlainClipboard, true);
 ```
 
+細かく見ていきましょう。
+
+まず、`Quill.import("modules/clipboard")` で Quill の `clipboard` モジュールを取得しています。
+
+`onPaste`メソッドの内部を解説します。
+
+まず、`DOMParser` を使って、ペーストされる HTML をパースし、`querySelectorAll("*")` で全ての要素を取得しています。
+
+```tsx
+const parser = new DOMParser();
+const doc = parser.parseFromString(html, "text/html");
+const elements = doc.body.querySelectorAll("*");
+```
+
+そして、それぞれの要素に対して、今回の要件に合う処理を行っています。
+
+```tsx
+// backgroundColorが指定されていたら削除する
+if (el.style.backgroundColor) {
+  el.style.removeProperty("background-color");
+}
+// colorが指定されていたら近い色に変換する
+// closestColor関数は本筋と逸れるため割愛するが、カラーコードをRGBに変換して近い色を返す処理を行っている
+if (el.style.color) {
+  const colorName = closestColor(el.style.color);
+  if (colorName) {
+    el.style.color = ("color", color);
+  } else {
+    el.style.removeProperty("color");
+  }
+}
+// linkの場合はhrefを削除
+if (el.tagName === "A") {
+  el.removeAttribute("href");
+}
+```
+
+elements を変更したら、その変更を Delta 形式に変換し、Quill に反映させます。
+
+```tsx
+content = doc.body.innerHTML;
+delta = delta.concat(this.convert({ html: content }) as DeltaStatic);
+quillObj.updateContents(delta, "user");
+```
+
 このように、`onPaste` メソッドをオーバーライドすることで、ペースト時の処理をカスタマイズすることができます。
 しかし、Quill のアップデートにより Clipboard モジュールの実装が変わる可能性があるため、バージョンアップの際には注意深く行う必要があります。
 
@@ -182,7 +250,9 @@ Quill.register("modules/clipboard", PlainClipboard, true);
 ```
 
 それぞれの element に style が指定されておらず、style タグに全てのスタイルが記述されているため、おそらく上記のコードでは動きません。
-そのため、HTML 構造に合わせた処理変更が必要です。
+そのため、先に style タグをパースして、それを元に各要素にスタイルを適用する処理を追加する必要があります。
+
+このように、それぞれのエディターに合わせてペースト処理をカスタマイズする必要があるのが書式設定の辛いところですね。
 
 ## まとめ
 
