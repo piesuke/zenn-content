@@ -27,13 +27,13 @@ publication_name: "uzu_tech"
 使うのは Github CLI です。
 
 ```bash
-    brew install gh
+brew install gh
 ```
 
 デスクトップ通知については、自分は Mac ユーザーなので terminal-notifier を使います。
 
 ```bash
-    brew install terminal-notifier
+brew install terminal-notifier
 ```
 
 Linux なら `notify-send` などが使えると思います。
@@ -47,7 +47,7 @@ Github CLI では様々な機能が提供されていますが、今回は Githu
 これを通知と一緒に使うには、以下のようなコマンドを実行します。
 
 ```bash
-    gh run watch -i1 | terminal-notifier -title "Github Actions" -message "Finished"
+gh run watch -i1 | terminal-notifier -title "Github Actions" -message "Finished"
 ```
 
 上記コマンドを実行すると、今走っているアクションの一覧が表示されるので、その中で完了通知を飛ばしたいアクションを選択します。
