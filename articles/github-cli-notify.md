@@ -2,7 +2,7 @@
 title: "Github Actionsの処理結果を見逃さないようにデスクトップ通知をする" # 記事のタイトル
 emoji: "😸" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
-topics: ["flutter"] # タグ。["markdown", "rust", "aws"]のように指定する
+topics: ["githubactions", "tips", "terminal", "tech"] # タグ。["markdown", "rust", "aws"]のように指定する
 published: true # 公開設定（falseにすると下書き）
 publication_name: "uzu_tech"
 ---
