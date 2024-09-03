@@ -100,7 +100,7 @@ https://github.com/chakra-ui/chakra-ui/blob/969fe57c97540cafa736ff64cfdff970c948
 
 この処理によって、どこのコンポーネントでモーダルを表示しても、document.body の末尾に描画され、他のコンポーネントに影響を与えることなくモーダルを全画面表示することができます。
 
-![](/images/modal-portal.png)
+![](/images/portal.png)
 
 ## まとめ
 
