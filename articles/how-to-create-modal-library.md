@@ -77,8 +77,13 @@ https://github.com/chakra-ui/chakra-ui/blob/v2/packages/components/src/modal/use
 `useModal`がやってることは、大まかに以下の通りです。
 
 - `useIds`を利用して、コンポーネント内で必要な複数のユニークな ID を一括生成し、他の要素と衝突しないようにする
+  https://github.com/chakra-ui/chakra-ui/blob/969fe57c97540cafa736ff64cfdff970c948c810/packages/components/src/modal/use-modal.ts#L71-L76
+
 - [WAI-ARIA](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/) の仕様に従ってイベントや属性を設定
+  https://github.com/chakra-ui/chakra-ui/blob/969fe57c97540cafa736ff64cfdff970c948c810/packages/components/src/modal/use-modal.ts#L114-L129
+
 - `useModalManager`を呼び出してダイアログに index を付与
+  https://github.com/chakra-ui/chakra-ui/blob/969fe57c97540cafa736ff64cfdff970c948c810/packages/components/src/modal/use-modal.ts#L88
 
 この中で面白いなーと思ったのは WAI-ARIA の対応と modalManager の使い方です。
 WAI-ARIA とは Web アクセシビリティを向上させるために W3C が策定した技術仕様で、モーダルのような UI コンポーネントを作成する際には、WAI-ARIA の仕様に従って実装することが推奨されています。
