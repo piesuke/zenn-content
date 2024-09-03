@@ -16,10 +16,11 @@ publication_name: "uzu_tech"
 
 ## はじめに
 
-弊社では可能な限りサードパーティーのライブラリを使用せず、共通コンポーネントを自作する方針を採っていますが、モーダルダイアログのライブラリは自前で一から実装するのは大変だと思い、サードパーティーのライブラリを使っています。
+弊社は Web の再利用可能なコンポーネントは出来るだけ共通コンポーネントを作成するようにしています。そして、共通コンポーネントは出来るだけサードパーティーライブラリを使わず、自前で作成するようにしています。
+しかし、モーダルのような UI コンポーネントは、実装が複雑なので、サードパーティーライブラリを活用しています。
 
-モーダルライブラリは適切な props を渡すだけで簡単に利用できるため、その実装方法について調べてみました。
-ちなみに弊社では [Chakra UI](https://chakra-ui.com/) を使っているので、Chakra UI の Modal を例に調べてみました。
+モーダルライブラリは適切な props を渡すだけで簡単に利用できますが、中身がどうなっているのか気になったので調べてみました。
+ちなみに弊社ではモーダルは [Chakra UI](https://chakra-ui.com/) を使っているので、Chakra UI の Modal を調べました。
 
 ## Chakra UI の Modal
 
@@ -63,7 +64,7 @@ function BasicUsage() {
 https://github.com/chakra-ui/chakra-ui/blob/v2/packages/components/src/modal/modal.tsx
 
 `Modal`はラッパーとして機能しつつ、子コンポーネントにコンテキストやイベントハンドリング機能を提供しています。
-https://github.com/chakra-ui/chakra-ui/blob/969fe57c97540cafa736ff64cfdff970c948c810/packages/components/src/modal/modal.tsx#L190
+https://github.com/chakra-ui/chakra-ui/blob/969fe57c97540cafa736ff64cfdff970c948c810/packages/components/src/modal/modal.tsx#L176-L197
 
 context は、`Modal` コンポーネントの Props として渡される値と、 `useModal`というカスタムフックで生成された値をマージして作成されています。
 どうやら `useModal` が `Modal` のロジックを担っているようです。次は `useModal` のソースコードを見てみましょう。
@@ -76,13 +77,13 @@ https://github.com/chakra-ui/chakra-ui/blob/v2/packages/components/src/modal/use
 `useModal`がやってることは、大まかに以下の通りです。
 
 - `useIds`を利用して、コンポーネント内で必要な複数のユニークな ID を一括生成し、他の要素と衝突しないようにする
-- モーダルが開いている時にそれ以外の属性に `aria-hidden` を付与したり、`aria-labelledby`、`aria-describedby`といった https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/ の仕様に従って属性を付与
+- [WAI-ARIA](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/) の仕様に従ってイベントや属性を設定
 - `useModalManager`を呼び出してダイアログに index を付与
-- オーバーレイクリック時や、キーボード、マウスイベントのハンドリング
 
-この中で面白いなーと思ったのは ARIA の対応と modalManager の使い方です。
-ARIA の対応は、モーダルが開いている時に他の要素に `aria-hidden` を付与することで、スクリーンリーダーがそれらの要素を無視するようにし、ユーザーがモーダル外の要素にフォーカスしないようにします。
-また、ヘッダーに `aria-labelledby`、ボディに `aria-describedby` といった属性を付与することで、スクリーンリーダーがモーダルの内容を読み上げる際にどの要素を読み上げるかを指定しています。これを props の値を元に簡単なロジックで実現しているのが面白いなと思いました。
+この中で面白いなーと思ったのは WAI-ARIA の対応と modalManager の使い方です。
+WAI-ARIA とは Web アクセシビリティを向上させるために W3C が策定した技術仕様で、モーダルのような UI コンポーネントを作成する際には、WAI-ARIA の仕様に従って実装することが推奨されています。
+
+`useModal`では、キーボードイベントや `aria-modal`をはじめとした属性の設定を行っています。今までコンポーネントを作ってきて、WAI-ARIA の対応をあまり意識してこなかったので、今後は意識していきたいと思いました。
 
 また、`useModalManager`は、モーダルの index を管理するためのカスタムフックです。複数のモーダルが同時に開かれている場合に、それぞれのモーダルのインデックスを管理するために使われています。
 こちらも、シンプルながら汎用性の高い使い方をしているなと感じました。
@@ -90,20 +91,19 @@ ARIA の対応は、モーダルが開いている時に他の要素に `aria-hi
 ### 全画面表示を行う為に DOM ツリーの外に描画する Portal
 
 Modal の便利な点として、コンポーネントの中のどこに書いても全画面表示になるという点があります。これは、`Portal`というコンポーネントを使って実現されています。
-ソースのどこに書いても全画面表示になるように、 `Portal`を使っています。
 https://github.com/chakra-ui/chakra-ui/blob/v2/packages/components/src/portal/portal.tsx
 
 例えば `DefaultPortal`を見てみると、
-https://github.com/chakra-ui/chakra-ui/blob/969fe57c97540cafa736ff64cfdff970c948c810/packages/components/src/portal/portal.tsx#L37
+https://github.com/chakra-ui/chakra-ui/blob/969fe57c97540cafa736ff64cfdff970c948c810/packages/components/src/portal/portal.tsx#L37-L93
 
-`useSafeLayoutEffect` を用いて、レイアウトの副作用を安全に処理し、`createPortal` によって Portal の中身を document.body に追加しています。
+`useSafeLayoutEffect` の中で `document.body`の中に新しく div 要素を append して、`createPortal` によって Portal をレンダーする処理が行われています。
 
-https://github.com/chakra-ui/chakra-ui/blob/969fe57c97540cafa736ff64cfdff970c948c810/packages/components/src/portal/portal.tsx#L51
+この処理によって、どこのコンポーネントでモーダルを表示しても、document.body の末尾に描画され、他のコンポーネントに影響を与えることなくモーダルを全画面表示することができます。
 
-この処理によって、どこで書いても DOM ツリーの外に描画されるようになり、全画面表示を行うことができるようになっています。
+![](/images/modal-portal.png)
 
 ## まとめ
 
-ここまで複雑な処理を行っているとなると、自作で実装するのは大変そうですね。全ての UI ライブラリに感謝したいです。
+ここまで複雑な処理を行っているとなると、自作で実装するのは大変そうですね。簡単に使えるくらい上手く抽象化してくれていることに感謝したいです。
 
-a11y の対応や、Portal の使い方など、実装の参考になる点が多かったです。今後もライブラリのソースコードを読んで、学びを得ていきたいと思います。
+WAI-ARIA の対応や、Portal の使い方など、実装の参考になる点が多かったです。今後もライブラリのソースコードを読んで、学びを得ていきたいと思います。
