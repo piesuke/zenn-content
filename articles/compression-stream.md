@@ -1,5 +1,5 @@
 ---
-title: "CompressionStreamを使ってライブラリを導入せずにVercelのRoute Handlersのリミットを回避した話" # 記事のタイトル
+title: "CompressionStreamを使ってライブラリを導入せずにVercelのRoute Handlersのリミットを一時的に回避する" # 記事のタイトル
 emoji: "🧊" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
 topics: ["nextjs", "javascript", "typescript", "approuter", "tech"] # タグ。["markdown", "rust", "aws"]のように指定する
@@ -14,7 +14,8 @@ publication_name: "uzu_tech"
 ## はじめに
 
 私たちは運営する Web サイトにおいて Next.js を採用しており、データのやり取りの一部に Vercel の Route Handlers を利用しています。
-簡単な API であれば問題ないのですが、request body が 4.5MB を超えた場合は [Vercel の制限](https://vercel.com/docs/functions/runtimes#request-body-size)に引っかかり 413 エラーが返ってきてしまいます。
+簡単な API であれば問題ないのですが、リクエストボディ が 4.5MB を超えた場合は [Vercel の制限](https://vercel.com/docs/functions/runtimes#request-body-size)に引っかかり 413 エラーが返ってきてしまいます。
+回避策としては Route Handlers に頼らずに自前でサーバーを用意するなどの解決策がありますが、Vercel のリミットを超えるリクエストは全体の 5%も満たないくらいと少なく、また素早く解決する必要があった為構成を変えずに一時的に解決する必要がありました。
 これを回避する方法の一つとして、`CompressionStream` を使ってリクエストボディを圧縮して送信する方法を使ったので紹介します。
 
 ## CompressionStream とは
@@ -27,6 +28,8 @@ https://developer.mozilla.org/ja/docs/Web/API/CompressionStream
 ## 使い方
 
 こんな感じで使います。
+
+圧縮時
 
 ```ts
 const compress = async (data: Record<string, unknown>): Promise<string> => {
@@ -46,6 +49,22 @@ const compress = async (data: Record<string, unknown>): Promise<string> => {
   return btoa(binary);
 };
 
+const data = { key: "value" };
+const compressed = await compress(data);
+
+// 送信
+await fetch("https://example.com", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ compressed }),
+});
+```
+
+解凍時
+
+```ts
 const decompress = async (data: string): Promise<string> => {
   // Base64 文字列をバイナリ文字列に変換
   const binaryString = atob(data);
@@ -64,21 +83,14 @@ const decompress = async (data: string): Promise<string> => {
   return decoded;
 };
 
-const data = { key: "value" };
-const compressed = await compress(data);
-
-// 送信
-await fetch("https://example.com", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ compressed }),
-});
-
 // 解凍
 const decompressed = await decompress(compressed);
 ```
+
+## よかったこと
+
+- リクエストボディを圧縮したことで Vercel のリミットを一時的に回避できた
+- サイズが大きいリクエストボディを送信するときのパフォーマンスが向上した
 
 ## まとめ
 
