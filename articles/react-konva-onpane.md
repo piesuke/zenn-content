@@ -55,7 +55,20 @@ Input is a Quill Delta Object. Ensure that the output also adheres to the JSON a
 
 3. 改善ステップ：列挙結果を System メモリに渡し、修正翻訳を再出力させる。
 
-大きなトークンサイズの Delta を渡すと一部が未翻訳のままになってしまう事象がたまに発生したり、装飾の要素が変わる事があるので一度 AI によるセルフチェックを挟むことでそのようなミスを自己修正してくれます。。
+大きなトークンサイズの Delta を渡すと一部が未翻訳のままになってしまう事象がたまに発生したり、装飾の要素が変わる事があるので一度 AI によるセルフチェックを挟むことでそのようなミスを自己修正してくれます。
+
+2 のプロンプトは以下のように設定しています。
+
+```ts
+const reviewPrompt = `Based on the results of the ${targetLangLabel} translation, identify specific issues. Avoid vague expressions and provide accurate descriptions. There is no need to add content or formats that were not present in the original text. This includes but is not limited to: ・If it does not conform to ${targetLangLabel} expression habits, clearly indicate where it does not conform. ・For clumsy sentences, specify the location; there is no need to offer suggestions for modification as this will be fixed during free translation. ・If it is obscure and difficult to understand, attempts to explain may be made. However, if the ${targetLangLabel} characters included match those in the following list of technical terms, please do not propose any changes. If characters with different forms but the same meanings as those in the list of technical terms are used, please propose corrections. Technical terms are these. ${termsList}.`;
+```
+
+ここでは、
+・曖昧な表現や分かりにくい訳を行ってないか
+・翻訳を行う言語の表現習慣に合っているかどうか
+・後述する表記揺れ
+
+などをレビューしてもらっています。
 
 ## 3. 表記揺れを防ぐグロッサリー
 
@@ -68,6 +81,8 @@ Input is a Quill Delta Object. Ensure that the output also adheres to the JSON a
   "ダッシュボード": "Dashboard"
 }
 ```
+
+グロッサリーの管理方法については後日別のメンバーから記事が出る予定なので乞うご期待です。
 
 ## まとめ
 
