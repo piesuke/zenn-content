@@ -43,6 +43,11 @@ Quill は内部で Delta と呼ばれる操作履歴ベースの JSON を持ち�
 
 > Input is a Quill Delta Object. Ensure that the output also adheres to the JSON and Quill format. When translating, make sure no meaning is lost, the context is preserved and the number of attribute keys and their contents are the same.
 
+ここでは、翻訳時に気をつけることを列挙しています。
+
+- 意味を不必要に取りこぼさないように
+- キーの数とそれぞれのコンテンツが同じであることを確認するように
+
 ## 2. AI にセルフチェックさせる二段階プロンプト
 
 以下のようなステップで翻訳する事で、AI がセルフチェックしてくれます。
@@ -85,3 +90,7 @@ const reviewPrompt = `Based on the results of the ${targetLangLabel} translation
 ## まとめ
 
 リッチテキストは単純な文章ではない分、翻訳となるといくつか気をつける事があります。しかし AI モデルの進化により日に日に精度が上がっているのも実感しています。将来的にはここの tips を用いなくとも十分な精度を出してくれる可能性も十分にあるので、参考程度にしていただけますと幸いです。
+
+また、弊社では他にも翻訳に関して様々な取り組みを行なっております。そちらも併せてご覧いただけると、更に多言語対応に対する知見が深まると思います。
+
+https://zenn.dev/articles/3cdcb2fa33463d/
