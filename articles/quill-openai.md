@@ -2,7 +2,7 @@
 title: "リッチテキスト（Quill）をOpenAI APIで翻訳するときの tips" # 記事のタイトル
 emoji: "🧊" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
-topics: ["ai", "tech"] # タグ。["markdown", "rust", "aws"]のように指定する
+topics: ["ai", "tech", "openai", ""quill] # タグ。["markdown", "rust", "aws"]のように指定する
 published: false # 公開設定（falseにすると下書き）
 publication_name: "uzu_tech"
 ---
@@ -98,4 +98,4 @@ Technical terms are these. ${termsList}.`;
 
 また、弊社では他にも翻訳に関して様々な取り組みを行なっております。そちらも併せてご覧いただけると、更に多言語対応に対する知見が深まると思います。
 
-https://zenn.dev/articles/3cdcb2fa33463d/
+https://zenn.dev/uzu_tech/articles/3cdcb2fa33463d
