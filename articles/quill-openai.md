@@ -41,9 +41,7 @@ Quill は内部で Delta と呼ばれる操作履歴ベースの JSON を持ち�
 
 英語のプロンプトを渡す方が精度が高まる気がするので英語で渡しています。
 
-```
-Input is a Quill Delta Object. Ensure that the output also adheres to the JSON and Quill format. When translating, make sure no meaning is lost, the context is preserved and the number of attribute keys and their contents are the same.
-```
+> Input is a Quill Delta Object. Ensure that the output also adheres to the JSON and Quill format. When translating, make sure no meaning is lost, the context is preserved and the number of attribute keys and their contents are the same.
 
 ## 2. AI にセルフチェックさせる二段階プロンプト
 
