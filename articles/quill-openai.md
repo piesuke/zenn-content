@@ -63,7 +63,12 @@ Quill は内部で Delta と呼ばれる操作履歴ベースの JSON を持ち�
 2 のプロンプトは以下のように設定しています。
 
 ```ts
-const reviewPrompt = `Based on the results of the ${targetLangLabel} translation, identify specific issues. Avoid vague expressions and provide accurate descriptions. There is no need to add content or formats that were not present in the original text. This includes but is not limited to: ・If it does not conform to ${targetLangLabel} expression habits, clearly indicate where it does not conform. ・For clumsy sentences, specify the location; there is no need to offer suggestions for modification as this will be fixed during free translation. ・If it is obscure and difficult to understand, attempts to explain may be made. However, if the ${targetLangLabel} characters included match those in the following list of technical terms, please do not propose any changes. If characters with different forms but the same meanings as those in the list of technical terms are used, please propose corrections. Technical terms are these. ${termsList}.`;
+const reviewPrompt = `Based on the results of the ${targetLangLabel} translation, identify specific issues. Avoid vague expressions and provide accurate descriptions. 
+There is no need to add content or formats that were not present in the original text. This includes but is not limited to: 
+・If it does not conform to ${targetLangLabel} expression habits, clearly indicate where it does not conform. 
+・For clumsy sentences, specify the location; there is no need to offer suggestions for modification as this will be fixed during free translation. 
+・If it is obscure and difficult to understand, attempts to explain may be made. However, if the ${targetLangLabel} characters included match those in the following list of technical terms, please do not propose any changes. If characters with different forms but the same meanings as those in the list of technical terms are used, please propose corrections. 
+Technical terms are these. ${termsList}.`;
 ```
 
 ここでは、
