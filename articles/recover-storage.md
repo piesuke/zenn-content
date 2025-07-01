@@ -87,7 +87,7 @@ flutter clean
 rm -rf ~/.pub-cache
 
 # 各プロジェクトのビルドフォルダを一括削除
-find . -name "build" -type d -path "*/flutter_project/*" -prune -exec rm -rf {} \;
+find . -name "build" -type d -path "*/[flutterプロジェクトの名前]/*" -prune -exec rm -rf {} \;
 
 # iOSビルドキャッシュを削除
 rm -rf ~/Library/Developer/Xcode/DerivedData/*
