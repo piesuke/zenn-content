@@ -68,9 +68,9 @@ npm cache clean --force
 
 ### 不要なnode_modulesを一括削除
 
-以下のコマンドで、node_modulesを持っているフォルダを一括検索します。
+以下のコマンドで、ホームディレクトリ以下のnode_modulesを持っているフォルダを一括検索します。
 ```bash
-find . -name 'node_modules' -type d -prune 
+find ~ -name 'node_modules' -type d -prune 
 ```
 
 あとは、しばらく使わないプロジェクトのnode_modulesを削除してあげるだけです。
@@ -86,8 +86,8 @@ flutter clean
 # pub-cacheを削除（全てのパッケージが再ダウンロードされるので注意）
 rm -rf ~/.pub-cache
 
-# 各プロジェクトのビルドフォルダを一括削除
-find . -name "build" -type d -path "*/[flutterプロジェクトの名前]/*" -prune -exec rm -rf {} \;
+# 各プロジェクトのビルドフォルダを一括削除（ホームディレクトリ以下を検索）
+find ~ -name "build" -type d -path "*/flutter*/*" -prune -exec rm -rf {} \;
 
 # iOSビルドキャッシュを削除
 rm -rf ~/Library/Developer/Xcode/DerivedData/*
