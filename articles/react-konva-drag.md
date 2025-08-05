@@ -245,7 +245,7 @@ const [isHover, setIsHover] = useState(false);
 - 条件付きレンダリング`{isHover && ...}`でラベルの表示を制御
 - ラベルは`Group`内の`Tag`（背景）と`Text`（テキスト）で構成
 - ラベルの位置は`y={IMAGE_Y -TAG_HEIGHT / stageRef.current.scaleY() - TAG_Y_PADDING / stageRef.current.scaleY()}`でオブジェクトの上部に配置
-  - scaleを考慮しないと拡大・縮小した際に位置がズレる　
+  - scaleを考慮しないと拡大・縮小した際に位置がズレる。実装時にはここでつまづいた。
 - ラベルの幅を確定するため、一度Konva.Textを作りTextのサイズを計算し、適切な値をTagのwidthに設定している
 
 ### ズーム対応のラベルサイズ調整機能
@@ -276,7 +276,7 @@ const onHandleScale = (e: Konva.KonvaEventObject<WheelEvent>) => {
 
 - `scale`ステートで現在のズーム倍率を管理
 - `onHandleScale`関数でホイールイベントからズーム処理を実行し、`scale`を更新
-  - scaleの更新は `stage.scale({ x: newScale, y: newScale });`で行っている
+  - scaleの更新は `stage.scale({ x: newScale, y: newScale });`で行っている。こちらを呼び出さないと　`stageRef.current.scaleX` の値が更新されない。
 - ラベルの`Group`に`scaleX={1 / stageRef.current.scaleX()}`、`scaleY={1 / stageRef.current.scaleY()}`を設定
   - これにより、キャンバスがズームしてもラベルは常に一定サイズを保持
 - ラベルのY座標も `Group`の`y={IMAGE_Y - (TAG_HEIGHT / scale.y) - (TAG_Y_PADDING / scale.y)}`でスケールに応じて調整され、正確な位置に表示
