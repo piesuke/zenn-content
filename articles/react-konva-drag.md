@@ -1,6 +1,6 @@
 ---
 title: "【React-konva】Shapeをホバーした時にDevモードのFigmaっぽく表示する" # 記事のタイトル
-emoji: "🧊" # アイキャッチとして使われる絵文字（1文字だけ）
+emoji: "🎨" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
 topics: ["tech", "react", "konva"] # タグ。["markdown", "rust", "aws"]のように指定する
 published: false # 公開設定（falseにすると下書き）
@@ -20,7 +20,7 @@ publication_name: "uzu_tech"
 ## DevモードのFigmaっぽくとは
 
 こんな感じ。
-![](/images/CleanShot 2025-08-05 at 10.49.42.gif)
+![](/images/CleanShot2025-08-05_1.gif)
 
 ### ポイント
 
@@ -181,7 +181,7 @@ export default function App() {
 
 ## 実際の表示
 
-![](/images/CleanShot 2025-08-05 at 11.36.02.gif)
+![](/images/CleanShot2025-08-05_2.gif)
 
 ## 解説
 
@@ -281,8 +281,7 @@ const onHandleScale = (e: Konva.KonvaEventObject<WheelEvent>) => {
 - ラベルのY座標も `Group`の`y={IMAGE_Y - (TAG_HEIGHT / scale.y) - (TAG_Y_PADDING / scale.y)}`でスケールに応じて調整され、正確な位置に表示
 
 また、Groupのy座標もScaleが考慮されてない場合、以下のように拡大・縮小したときにラベルがずれてしまいます。
-![](/images/CleanShot 2025-08-05 at 11.45.43.gif)
-
+![](/images/CleanShot2025-08-05_3.gif)
 
 ## まとめ
 
