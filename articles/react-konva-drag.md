@@ -22,8 +22,6 @@ https://konvajs.org/docs/react/index.html
 
 KonvaというJavascriptでCanvasを描画できるライブラリをReactで使えるようにしたものです。
 
-`State`
-
 ## DevモードのFigmaっぽくとは
 
 こんな感じ。
