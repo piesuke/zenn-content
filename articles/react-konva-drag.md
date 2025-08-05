@@ -18,7 +18,7 @@ publication_name: "uzu_tech"
 - React-Konvaの基本的な知識
 
 ## React-Konvaの軽い説明
-![](https://konvajs.org/docs/react/index.html)
+https://konvajs.org/docs/react/index.html
 
 KonvaというJavascriptでCanvasを描画できるライブラリをReactで使えるようにしたものです。
 
