@@ -16,7 +16,7 @@ publication_name: "uzu_tech"
 
 ## zustand とは
 
-Zustand は、React のためのシンプルで高速な状態管理ライブラリです。「状態」を意味するドイツ語から名付けられました。Redux のような複雑なボイラープレートを必要とせず、React のフックをベースにした直感的な API でグローバルな状態を管理できるのが大きな特徴です。
+Zustand は、React のためのシンプルで高速な状態管理ライブラリです。「状態」を意味するドイツ語から名付けられました。なぜドイツ語なのかは分かりませんがとてもセンスが良いですね。Redux のような複雑なボイラープレートを必要とせず、React のフックをベースにした直感的な API でグローバルな状態を管理できるのが大きな特徴です。
 
 Zustand は、同じく状態管理ライブラリである Jotai や Valtio を開発した Poimandres というコミュニティによって作られました。これらのライブラリは、それぞれ異なるアプローチで状態管理の問題を解決しようとしています。
 
@@ -24,7 +24,9 @@ Zustand は、同じく状態管理ライブラリである Jotai や Valtio を
 - **Jotai**: 「アトム」と呼ばれる小さな状態の断片を組み合わせて状態を構築する、アトミックなアプローチを取ります。コンポーネントの再レンダリングを最小限に抑えたい場合に特に強力です。
 - **Valtio**: JavaScript の Proxy を利用して、状態オブジェクトへの変更を自動的に追跡します。まるで通常の JavaScript オブジェクトを直接書き換えるかのように状態を更新できるため、非常に直感的に扱えます。
 
-これらの選択肢の中で、Zustand は「シンプルさは欲しいけれど、ある程度の構造化も保ちたい」という場合に適した、バランスの取れたライブラリと言えるでしょう。
+(この三部作全てに関わっている[Daishi さんのインタビュー](https://levtech.jp/media/article/focus/detail_685/)はとても面白いのでぜひ)
+
+これらの選択肢の中で、Zustand は「シンプルさは欲しいけれど、ある程度の構造化も保ちたい」という場合に適した、バランスの取れたライブラリと言えるでしょう。また、zustand は圧倒的にバンドルサイが小さことも魅力的です。
 
 ## persist ミドルウェア
 
@@ -56,21 +58,44 @@ const useStore = create<Store>()(
 
 これだけで、`count` の状態が `localStorage` に `count-storage` というキーで保存されます。
 
-## 実用的なコード例
+## 実用的なコード例：`migrate` を使ったスキーマの更新
 
-次に、もう少し実用的な例として、アプリケーションの設定を管理するストアを見てみましょう。
-この例では、`version`と`merge`オプションを使って、後から新しい設定項目（フォントサイズ）を追加するシナリオを扱います。
+次に、より実用的な例として、アプリケーションの設定を管理するストアを見てみましょう。
+この例では、`version`と`migrate`オプションを使って、後から新しい設定項目（`fontSize`）を追加する、という破壊的変更に安全に対応する方法を扱います。
 
 ```typescript
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { devtools, persist, PersistOptions } from "zustand/middleware";
 
+// 最新のStateの型
 type SettingsState = {
   theme: "light" | "dark";
-  // このプロパティは後から追加されたと仮定します
   fontSize: number;
   setTheme: (theme: "light" | "dark") => void;
   setFontSize: (size: number) => void;
+};
+
+// バージョン0の古いStateの型（マイグレーション用）
+type OldSettingsState = {
+  theme: "light" | "dark";
+  // fontSizeが存在しない
+};
+
+const persistOptions: PersistOptions<SettingsState> = {
+  name: "app-settings-storage",
+  version: 1, // 新しいバージョン番号
+  migrate: (persistedState, version) => {
+    // version 0 から 1 へのマイグレーション
+    if (version === 0) {
+      const oldState = persistedState as OldSettingsState;
+      // 古いStateに新しいプロパティを追加して返す
+      return {
+        theme: oldState.theme,
+        fontSize: 16, // デフォルト値
+      };
+    }
+    return persistedState as SettingsState;
+  },
 };
 
 const useSettingsStore = create<SettingsState>()(
@@ -78,24 +103,11 @@ const useSettingsStore = create<SettingsState>()(
     persist(
       (set) => ({
         theme: "light",
-        fontSize: 16, // 新しいプロパティのデフォルト値
+        fontSize: 16,
         setTheme: (theme) => set({ theme }),
         setFontSize: (size) => set({ fontSize: size }),
       }),
-      {
-        name: "app-settings-storage",
-        version: 1, // fontSize追加時に0から1に上げた、などのシナリオを想定
-        // 新しいプロパティを安全に追加するためのカスタムマージ戦略
-        merge: (persistedState, currentState) => {
-          // `currentState` は新しいデフォルト値を含むコード上の最新の状態
-          // `persistedState` はストレージにある古い状態（fontSizeを含まない可能性がある）
-          // これらをマージすることで、既存の `theme` 設定を維持しつつ、新しい `fontSize` を安全に追加します。
-          return {
-            ...currentState,
-            ...(persistedState as object),
-          };
-        },
-      }
+      persistOptions
     ),
     {
       name: "SettingsStore",
@@ -110,23 +122,24 @@ const useSettingsStore = create<SettingsState>()(
 
 #### `version`
 
-`version` は、永続化されるデータのバージョンを管理するためのオプションです。
-ストアのデータ構造に破壊的変更（例：プロパティ名の変更、型の変更）があった場合に、このバージョン番号をインクリメントします。
+`version` は、永続化されるデータのバージョンを管理するためのオプションです。ストアのデータ構造に破壊的変更（例：プロパティ名の変更、型の変更）があった場合に、このバージョン番号をインクリメントします。
 
-バージョンが古いままのデータがストレージに残っていると、アプリケーションが予期せぬエラーを起こす可能性があります。`persist` は、コードで指定された `version` とストレージに保存されている `version` が異なる場合、デフォルトではストレージのデータを破棄して初期状態に戻してくれます。これにより、安全にデータ構造の変更を行うことができます。
+`persist`ミドルウェアは、ストレージに保存されているバージョンとコード上で指定された`version`を比較し、異なっていた場合に`migrate`関数を実行します。
 
-#### `merge`
+#### `migrate`
 
-`merge` は、ストレージから復元された永続化データ (`persisted`) と、現在のコード上の初期状態 (`current`) をどのようにマージするかをカスタマイズするための関数です。
+`migrate`は、`version`の不一致が検出されたときに実行される、スキーマ変更を吸収するための関数です。
 
-デフォルトの `merge` は単純な `Object.assign` のような動作をしますが、これでは不十分な場合があります。
+上記のコード例では、`version: 1` と指定しています。もしユーザーのストレージに `version: 0` のデータが保存されていた場合、`migrate`関数が呼び出されます。
 
-上記のコード例では、`merge`関数が重要な役割を果たします。例えば、ストアの`version`を`0`から`1`に上げ、新たに`fontSize`という設定項目を追加したとします。このとき、ユーザーの`localStorage`にはまだ`fontSize`を含まない古い状態が保存されています。
+1.  `migrate`関数は引数として、永続化されていた古い状態 (`persistedState`) とそのバージョン (`version`) を受け取ります。
+2.  関数内では、バージョン番号をチェックし（`if (version === 0)`）、どのバージョンからの移行処理なのかを判断します。
+3.  古い状態の型 (`OldSettingsState`) に基づいてデータにアクセスし、新しい状態の型 (`SettingsState`) に合うように、不足している`fontSize`プロパティにデフォルト値を追加して返します。
 
-`merge`関数は、ストレージから読み込んだ古い状態（`persistedState`）と、コード上の新しい初期状態（`currentState`）をどのように組み合わせるかを定義します。この例の`{ ...currentState, ...(persistedState as object) }`という実装により、ユーザーが以前設定した`theme`はそのままに、新しい`fontSize`のデフォルト値（16）が安全に追加されます。これにより、破壊的変更を避けつつ、スムーズに状態のスキーマを更新できます。
+この仕組みにより、ユーザーが過去に設定した`theme`の値を保持したまま、安全に新しい`fontSize`プロパティを追加できます。`migrate`関数が提供されていない場合、`version`が異なるとストレージのデータは破棄され、ストアはコード上の初期値でリセットされます。
 
 ## まとめ
 
-Zustandの `persist` ミドルウェアは、単に状態を永続化するだけでなく、`version` や `merge` といった高度なオプションを使うことで、より複雑な要件にも対応できる非常に強力な機能です。
+Zustand の `persist` ミドルウェアは、単に状態を永続化するだけでなく、`version` や `migrate` といった高度なオプションを使うことで、より複雑な要件にも対応できる非常に強力な機能です。
 
 状態管理と永続化のロジックをストア内にきれいにカプセル化できるため、コンポーネントのコードをクリーンに保つことにも繋がります。ぜひ活用してみてください。
