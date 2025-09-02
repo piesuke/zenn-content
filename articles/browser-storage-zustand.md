@@ -26,7 +26,7 @@ Zustand は、同じく状態管理ライブラリである Jotai や Valtio を
 
 (この三つのOSS全てに関わっている[Daishi さんのインタビュー](https://levtech.jp/media/article/focus/detail_685/)はとても面白いのでぜひ)
 
-これらの選択肢の中で、Zustand は「シンプルさは欲しいけれど、ある程度の構造化も保ちたい」という場合に適した、バランスの取れたライブラリと言えるでしょう。また、zustand は圧倒的にバンドルサイが小さことも魅力的です。
+これらの選択肢の中で、Zustand は「シンプルさは欲しいけれど、ある程度の構造化も保ちたい」という場合に適した、バランスの取れたライブラリと言えるでしょう。また、zustand は圧倒的にバンドルサイズが小さことも魅力的です。
 
 ## persist ミドルウェア
 
@@ -65,7 +65,7 @@ const useStore = create<Store>()(
 
 ```typescript
 import { create } from "zustand";
-import { devtools, persist, PersistOptions } from "zustand/middleware";
+import { persist, PersistOptions } from "zustand/middleware";
 
 // 最新のStateの型
 type SettingsState = {
@@ -82,7 +82,7 @@ type OldSettingsState = {
 };
 
 const persistOptions: PersistOptions<SettingsState> = {
-  name: "app-settings-storage",
+  name: "appSettingsStorage",
   version: 1, // 新しいバージョン番号
   migrate: (persistedState, version) => {
     // version 0 から 1 へのマイグレーション
@@ -99,7 +99,6 @@ const persistOptions: PersistOptions<SettingsState> = {
 };
 
 const useSettingsStore = create<SettingsState>()(
-  devtools(
     persist(
       (set) => ({
         theme: "light",
@@ -112,13 +111,12 @@ const useSettingsStore = create<SettingsState>()(
     {
       name: "SettingsStore",
     }
-  )
 );
 ```
 
 この例では、`persist` の第二引数にいくつかの高度なオプションが指定されています。
 
-### 高度なオプション
+### persistで使える高度なオプション
 
 #### `version`
 
