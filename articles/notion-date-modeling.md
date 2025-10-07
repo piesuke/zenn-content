@@ -56,7 +56,7 @@ Notion のビューアーは、type に応じて必要な properties のみを�
 従来はデータベース自体が properties を持っていましたが、これでは一つのデータソースしか扱えないという欠点がありました。中間レイヤーとして Data Source を導入することで、複数のデータソースを扱えるようになったようです。
 
 では、Data Source の詳細を見てみましょう。
-[https://developers.notion.com/reference/data-source]
+https://developers.notion.com/reference/data-source
 
 Data Source の properties には、データベースの列を定義する type が格納されます。
 ![](/images/CleanShot2025-10-07_11.45.43.png)
