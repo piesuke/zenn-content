@@ -38,7 +38,7 @@ Notion 上でどのように表示するかを決定する値です。
 
 ### content と parent の関係性
 
-![](/images/CleanShot2025-10-071_1.26.13.png)
+![](/images/CleanShot2025-10-07_11.58.50.png)
 
 ブロックはこのようなツリー構造を形成しています。content はページ上の表示順を決定し、各ブロックは一つだけ parent を持ちます。
 
