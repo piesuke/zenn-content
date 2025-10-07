@@ -62,7 +62,7 @@ Data Source の properties には、データベースの列を定義する type
 ![](/images/CleanShot2025-10-07_11.45.43.png)
 
 Data Source の各行は page object となっており、page の properties には定義された type に準拠した値が入ります。
-[https://developers.notion.com/reference/page#property-value-object]
+https://developers.notion.com/reference/page#property-value-object
 
 ```json
 {
