@@ -149,7 +149,7 @@ export const AnyDialog: React.FC<React.PropsWithChildren<DialogProps>> = ({
 </AnyDialog>;
 ```
 
-### 改善例（Tailwind CSS：ConfirmDialog 専用コンポーネント）
+### 改善例
 
 用途が固定されている場合は、明確な用途別コンポーネント（または明確なvariant）として切り出すべきです。これにより、具体的な型を用いることで、呼び出し側での実装の重複を排除できます。
 
