@@ -1,5 +1,5 @@
 ---
-title: "コーディングを習慣化するために自動トラッキングをしよう！" # 記事のタイトル
+title: "WakatimeとHabitify連携でコーディングを自動記録する仕組みを作ろう" # 記事のタイトル
 emoji: "👩‍💻" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
 topics: ["typescript", "habitigy", "githubactions", "wakatime"] # タグ。["markdown", "rust", "aws"]のように指定する
@@ -35,7 +35,10 @@ Habitifyは、習慣の形成と継続をサポートする多機能な習慣ト
 ## 作成したもの
 勉強用のリポジトリを作成し、そのリポジトリでどれくらい作業したのかをWakatimeで計測したものを一日の終わりに取得し、Habitifyに同期するbotを作成しました。
 
+ちょっとわかりにくいですが、一日の終わりにこのように特定のリポジトリを触った時間が自動で追加されます。
 ![記録](</images/wakatime-to-habitify-1.png>)
+
+このシステムを構築するためのステップは以下の通りです。
 
 ## wakatimeのプラグインをインストール　
 まずはwakatimeのアカウント登録を行い、その後 https://wakatime.com/settings/account からAPIキーを発行します。
