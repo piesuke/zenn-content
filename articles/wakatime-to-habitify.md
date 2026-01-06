@@ -59,7 +59,7 @@ Habitifyは、習慣の形成と継続をサポートする多機能な習慣ト
 
 抜粋して解説します。
 
-### wakatimeの実装
+### 1.wakatimeの実装
 ```typescript
 // src/lib/wakatime.ts
 import { WAKATIME_API_KEY } from "../constant";
@@ -102,7 +102,7 @@ export const getTodayTimeForProject = async (
 };
 ```
 
-### habitifyの実装
+### 2.habitifyの実装
 
 ```typescript
 // src/lib/habitify.ts
@@ -142,7 +142,7 @@ export const updateHabitifyMinLog = async (
 
 
 
-### 同期する実装
+### 3.同期する実装
 ```typescript
 // src/cmd/sync-wakatime-to-habitify.ts
 import { HABITIFY_TARGET_HABIT_ID, WAKATIME_TARGET_PROJECT } from "../constant";
@@ -186,7 +186,7 @@ main().catch((err) => {
 - WAKATIME_TARGET_PROJECT
   - APIを叩くか、https://wakatime.com/projects でそれぞれのプロジェクト名を確認する。基本的にリポジトリ名と同じだが、たまに違うので注意。
 
-### github actionsでcron jobを回す実装
+### 4.github actionsでcron jobを回す実装
 ```yml
 name: Sync Wakatime to Habitify
 
