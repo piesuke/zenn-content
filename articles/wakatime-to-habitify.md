@@ -11,8 +11,9 @@ publication_name: "uzu_tech"
 弊社では、マーダーミステリーをプレイできるアプリ「ウズ」と、マーダーミステリーを制作しウズ上で利用できるアプリ「ウズスタジオ」を開発しています。
 最近良かったマーダーミステリーは「[死者の告解](https://mdms.jp/scenarios/10276)」です。
 
-今回は業務と全く関係ない話です。
+⚠️今回は業務と全く関係ない話です。
 
+## コーディングを習慣化したい
 新年を迎え、新たな目標設定とともに「新しい習慣を身につけたい」と意気込んでいる方も多いのではないでしょうか。
 
 私自身も「新しいプログラミング言語を習得したい」「何かサービスを作って公開したい」という目標を掲げ、業務時間外でのコーディングを習慣化したいと考えていました。
@@ -39,15 +40,15 @@ Habitifyは、習慣の形成と継続をサポートする多機能な習慣ト
 ## wakatimeのプラグインをインストール　
 まずはwakatimeのアカウント登録を行い、その後 https://wakatime.com/settings/account からAPIキーを発行します。
 その後、VSCodeをお使いの方はExtensionからwakatimeと検索すればすぐ出てくるのでインストールし、先ほど発行したAPIキーを入力します。
-![alt text](<wakatime-to-habitify-2.png>)
+![alt text](</images/wakatime-to-habitify-2.png>)
 
 ## habitifyで習慣を作成
 続いてhabitifyをインストールします。PC版もありますが、なぜかAPIキーの発行がモバイル版しかできないので、モバイルアプリをインストールしましょう。　
 
 インストール後は、対象となる習慣を作成しましょう。この時、「目標」の箇所を編集し、単位を「分」にしてください。これによりwakatime側でトラッキングした時間をそのまま流しこむことができます。
 
-![alt text](<wakatime-to-habitify-3.png>)
-![alt text](<wakatime-to-habitify-4.png>)
+![alt text](</images/wakatime-to-habitify-3.png>)
+![alt text](</images/wakatime-to-habitify-4.png>)
 
 
 ## スクリプトを実装
@@ -57,6 +58,7 @@ Habitifyは、習慣の形成と継続をサポートする多機能な習慣ト
 
 ### wakatimeの実装
 ```typescript
+// src/lib/wakatime.ts
 import { WAKATIME_API_KEY } from "../constant";
 
 type WakaSummariesResponse = {
@@ -100,6 +102,7 @@ export const getTodayTimeForProject = async (
 ### habitifyの実装
 
 ```typescript
+// src/lib/habitify.ts
 
 /**
  * 特定の習慣のidを引数にとり、その習慣に分数のログを追加する
@@ -138,6 +141,7 @@ export const updateHabitifyMinLog = async (
 
 ### 同期する実装
 ```typescript
+// src/cmd/sync-wakatime-to-habitify.ts
 import { HABITIFY_TARGET_HABIT_ID, WAKATIME_TARGET_PROJECT } from "../constant";
 import { updateHabitifyMinLog } from "../lib/habitify";
 import { getTodayTimeForProject } from "../lib/wakatime";
@@ -215,6 +219,14 @@ jobs:
           WAKATIME_TARGET_PROJECT: ${{ secrets.WAKATIME_TARGET_PROJECT }}
           HABITIFY_TARGET_HABIT_ID: ${{ secrets.HABITIFY_TARGET_HABIT_ID }}
 ```
+先ほど紹介したwakatimeとhabitifyを同期するスクリプトをpacage.jsonに、
+
+```json
+"scripts": {
+    "sync-wakatime-to-habitify": "tsx  src/cmd/sync-wakatime-to-habitify.ts"
+  },
+```
+という形で登録し、それをgithub actionsで一日一回叩くようにしています。
 
 ## まとめ
 自動トラッキングは出来ましたが、そもそも自動トラッキングを忘れるという事態も発生しそうなので、今後はHabitifyの記録をLINEやSlackなどに流すことによって、習慣化をより確実なものにしていきたいです。
