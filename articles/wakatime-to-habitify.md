@@ -1,5 +1,5 @@
 ---
-title: "WakatimeとHabitify連携でコーディングを自動記録する仕組みを作ろう" # 記事のタイトル
+title: "Wakatime × Habitifyでコーディングの習慣化を助ける仕組みを作った" # 記事のタイトル
 emoji: "👩‍💻" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
 topics: ["typescript", "habitigy", "githubactions", "wakatime"] # タグ。["markdown", "rust", "aws"]のように指定する
