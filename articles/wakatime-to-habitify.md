@@ -1,9 +1,9 @@
 ---
-title: "Wakatime × Habitifyでコーディングの習慣化を助ける仕組みを作った" # 記事のタイトル
+title: "Wakatime × Habitifyでコーディング習慣を自動記録する仕組みを作った" # 記事のタイトル
 emoji: "👩‍💻" # アイキャッチとして使われる絵文字（1文字だけ）
 type: "tech" # tech: 技術記事 / idea: アイデア記事
 topics: ["typescript", "habitigy", "githubactions", "wakatime"] # タグ。["markdown", "rust", "aws"]のように指定する
-published: false # 公開設定（falseにすると下書き）
+published: true # 公開設定（falseにすると下書き）
 publication_name: "uzu_tech"
 ---
 
@@ -19,7 +19,9 @@ publication_name: "uzu_tech"
 私自身も「新しいプログラミング言語を習得したい」「何かサービスを作って公開したい」という目標を掲げ、業務時間外でのコーディングを習慣化したいと考えていました。
 
 しかし、新年に立てた目標や習慣は、往々にして三日坊主で終わってしまうのが現実です。私もかつてはそうでした。
-今年こそは習慣化を達成するため、Wakatime APIとHabitify APIを活用し、WakatimeとHabitifyを連携させてGitHub Actionsで毎日自動で同期する仕組みを構築しました
+今年こそは習慣化を達成したい。そう思い習慣化についての知識をいろいろ調べてみると、「ハビットトラッカー」といって習慣化したい行動を行った時に記録することで習慣の継続をサポートする効果があるということが分かりました。
+
+そこで、コーディング習慣の記録そのものを自動化し、楽にハビットトラッカーが続けられるように、Wakatime APIとHabitify APIを活用し、WakatimeとHabitifyを連携させてGitHub Actionsで毎日自動で同期する仕組みを構築しました
 
 ## wakatimeとは
 https://wakatime.com/
