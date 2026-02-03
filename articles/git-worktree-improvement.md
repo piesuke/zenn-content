@@ -67,27 +67,35 @@ add-wt frontend feature/login
 ```bash
 #!/bin/zsh
 
-# プロジェクトタイプごとのリポジトリパス
+# Git Worktree 共通設定ファイル
+# worktree.sh と remove-worktree.sh から読み込まれる
+
 typeset -A REPO_PATHS
-REPO_PATHS=(
-    ["frontend"]="/path/to/frontend-repo"
-    ["backend"]="/path/to/backend-repo"
-    # 必要に応じて追加
-)
-
-# プロジェクトタイプごとのworktree配置先
 typeset -A WORKTREE_DIRS
-WORKTREE_DIRS=(
-    ["frontend"]="/path/to/frontend-worktrees"
-    ["backend"]="/path/to/backend-worktrees"
-)
-
-# プロジェクトタイプごとのセットアップコマンド
+typeset -A EXEC_PATHS
 typeset -A SETUP_COMMANDS
-SETUP_COMMANDS=(
-    ["frontend"]="pnpm install"
-    ["backend"]="bundle install"
-)
+
+# 例: frontend プロジェクト
+REPO_PATHS[frontend]="$HOME/repos/frontend-main"
+WORKTREE_DIRS[frontend]="$HOME/worktrees/frontend"
+SETUP_COMMANDS[frontend]="npm install"
+
+# 例: backend プロジェクト
+REPO_PATHS[backend]="$HOME/repos/backend-main"
+WORKTREE_DIRS[backend]="$HOME/worktrees/backend"
+SETUP_COMMANDS[backend]="bundle install"
+
+# 例: monorepo プロジェクト（サブディレクトリで実行する場合）
+REPO_PATHS[monorepo]="$HOME/repos/monorepo-main"
+WORKTREE_DIRS[monorepo]="$HOME/worktrees/monorepo"
+EXEC_PATHS[monorepo]="packages/web"  # worktree内のサブディレクトリ
+SETUP_COMMANDS[monorepo]="pnpm install"
+
+# ここに必要なプロジェクトを追加
+# REPO_PATHS[your_project]="リポジトリのパス"
+# WORKTREE_DIRS[your_project]="worktree作成先のディレクトリ"
+# EXEC_PATHS[your_project]="worktree内のサブディレクトリ（オプション）"
+# SETUP_COMMANDS[your_project]="セットアップコマンド（オプション）"
 ```
 
 次に、メインのスクリプト `worktree.sh` です。
@@ -102,6 +110,9 @@ SCRIPT_DIR="${0:A:h}"
 
 # 共通設定を読み込み
 source "$SCRIPT_DIR/worktree-config.sh"
+
+# デフォルトのメインブランチ
+MAIN_BRANCH="main"
 
 # === 関数 ===
 usage() {
@@ -137,6 +148,7 @@ fi
 
 REPO_PATH="${REPO_PATHS[$PROJECT_TYPE]}"
 WORKTREE_BASE="${WORKTREE_DIRS[$PROJECT_TYPE]}"
+EXEC_SUBDIR="${EXEC_PATHS[$PROJECT_TYPE]}"
 
 # リポジトリの存在確認
 if [[ ! -d "$REPO_PATH" ]]; then
@@ -166,13 +178,19 @@ cd "$REPO_PATH"
 
 # 最新の情報を取得
 echo "Fetching latest from remote..."
-git fetch --all
+git fetch
 
 # ブランチが存在するか確認
 if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME"; then
     # ローカルブランチが存在する場合
     echo "Creating worktree from existing local branch: $BRANCH_NAME"
     git worktree add "$WORKTREE_PATH" "$BRANCH_NAME"
+    # upstreamが未設定の場合は設定
+    cd "$WORKTREE_PATH"
+    if ! git rev-parse --abbrev-ref --symbolic-full-name "@{u}" &>/dev/null; then
+        git push -u origin "$BRANCH_NAME" 2>/dev/null || true
+    fi
+    cd "$REPO_PATH"
 elif git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME"; then
     # リモートブランチが存在する場合
     echo "Creating worktree from remote branch: origin/$BRANCH_NAME"
@@ -181,6 +199,10 @@ else
     # 新規ブランチを作成（origin/mainをベースに）
     echo "Creating worktree with new branch: $BRANCH_NAME (based on origin/$MAIN_BRANCH)"
     git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" "origin/$MAIN_BRANCH"
+    # 新規ブランチのupstreamを設定
+    cd "$WORKTREE_PATH"
+    git push -u origin "$BRANCH_NAME" --no-verify 2>/dev/null || true
+    cd "$REPO_PATH"
 fi
 
 echo ""
@@ -190,17 +212,30 @@ echo "  Branch: $BRANCH_NAME"
 
 # セットアップコマンドが定義されている場合は実行
 if [[ -n "${SETUP_COMMANDS[$PROJECT_TYPE]}" ]]; then
+    # worktree内のサブディレクトリでセットアップを実行
+    if [[ -n "$EXEC_SUBDIR" ]]; then
+        EXEC_PATH="$WORKTREE_PATH/$EXEC_SUBDIR"
+    else
+        EXEC_PATH="$WORKTREE_PATH"
+    fi
     echo ""
     echo "Running setup command: ${SETUP_COMMANDS[$PROJECT_TYPE]}"
+    echo "  in: $EXEC_PATH"
     echo "----------------------------------------"
-    cd "$WORKTREE_PATH"
+    cd "$EXEC_PATH"
     eval "${SETUP_COMMANDS[$PROJECT_TYPE]}"
     echo "----------------------------------------"
     echo "Setup completed!"
 fi
 
-echo ""
-echo "移動コマンド: cd $WORKTREE_PATH"
+# 移動先パスの表示
+if [[ -n "$EXEC_SUBDIR" ]]; then
+    echo ""
+    echo "移動コマンド: cd $WORKTREE_PATH/$EXEC_SUBDIR"
+else
+    echo ""
+    echo "移動コマンド: cd $WORKTREE_PATH"
+fi
 ```
 
 ### エイリアスの登録
